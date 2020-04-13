@@ -2,6 +2,9 @@ import scipy.io.wavfile as wav
 import matplotlib.pyplot as plt
 import numpy as np
 import sounddevice as sd
+import librosa as lb
+import librosa.display as lbdisp
+
 
 filename = 'worksample.wav'
 
@@ -27,11 +30,21 @@ ynorm = np.abs(Y[0:round(nf/2+1)])
 ynorm = (ynorm - np.min(ynorm))/(np.max(ynorm) - np.min(ynorm))
 f = samplerate/2*np.linspace(0,1,round(nf/2+1))
 
+
 # Plotagem da transformada e do audio.
 plt.figure(1)
 plt.plot(f, ynorm, linewidth=0.3)
 plt.figure(2)
 plt.plot(data, linewidth=0.3)
+
+
+libload, fs1 = lb.load(filename)
+
+mfccs=lb.feature.mfcc(libload, fs1)
+
+plt.figure(figsize=(10, 4))
+lbdisp.specshow(mfccs, x_axis='time')
+plt.colorbar()
+plt.title('MFCC')
+plt.tight_layout()
 plt.show()
-
-
