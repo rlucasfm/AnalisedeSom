@@ -5,6 +5,7 @@ import sounddevice as sd
 import librosa as lb
 import librosa.display as lbdisp
 import noisereduce as nr
+import pandas as pd
 
 
 filenamenoise = 'worksamplenoisy.wav'
@@ -35,13 +36,13 @@ reduced_noise = nr.reduce_noise(audio_clip=dataraw, noise_clip=noisy_part, verbo
 wav.write(filename, fs, reduced_noise)
 
 # APLICAÇÃO DA FFT E GRÁFICOS
-nf=16384
-Y = np.fft.fft(reduced_noise,nf) # Aplicação da FFT no áudio
+#nf=20000
+Y = np.fft.fft(reduced_noise) # Aplicação da FFT no áudio
 
 # Normalização da saída da FFT
-ynorm = np.abs(Y[0:round(nf/2+1)])
+ynorm = np.abs(Y[0:round(np.size(Y)/2+1)])
 ynorm = (ynorm - np.min(ynorm))/(np.max(ynorm) - np.min(ynorm))
-f = samplerate/2*np.linspace(0,1,round(nf/2+1))
+f = samplerate/2*np.linspace(0,1,round(np.size(Y)/2+1))
 
 
 # Plotagem da transformada e do audio (interesse e ruído).
@@ -62,13 +63,31 @@ plt.plot(reduced_noise, linewidth=0.3)
 # Obtenção dos coeficientes de frequência Mel cepstral e sua média
 libload, fs1 = lb.load(filename)
 mfccs=lb.feature.mfcc(libload, fs1)
-media = np.mean(libload)
-print(media)
+media = np.mean(mfccs)
+# Normalização do MFCCS
+mnorm = (mfccs - np.min(mfccs))/(np.max(mfccs) - np.min(mfccs))
+print(np.mean(mfccs))
 
-# Plotagem dos CFMC
+
+# Obtenção dos Coeficientes de Predição Linear
+lpc = lb.lpc(libload, 32)
+# Normalização do LPC
+lnorm = (lpc - np.min(lpc))/(np.max(lpc) - np.min(lpc))
+print(np.mean(lpc))
+
+
+# Plotagem dos LPC
+plt.figure(5)
+plt.plot(lpc)
+plt.title('Coeficientes de Predição Linear')
+
+
+# Plotagem dos MFCCS
 plt.figure(figsize=(10, 4))
-lbdisp.specshow(mfccs, x_axis='time')
+lbdisp.specshow(mfccs, x_axis='tempo')
 plt.colorbar()
-plt.title('MFCC')
+plt.title('Coeficientes de Frequência Mel Cepstrais')
 plt.tight_layout()
+
+
 plt.show()
